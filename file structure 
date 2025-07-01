@@ -1,0 +1,16 @@
+ai-counsel/
+│
+├── app/
+│   ├── __init__.py
+│   ├── main.py            # Streamlit app entrypoint
+│   ├── ui.py              # UI layout, tabs, sidebar
+│   ├── cases.py           # Logic for cases (add, edit, delete, load/save)
+│   ├── facts.py           # Module for facts
+│   ├── evidence.py        # Module for evidence
+│   ├── supabase_client.py # Supabase connection logic
+│   └── utils.py           # Helper functions
+│
+├── requirements.txt       # Python dependencies
+├── README.md
+├── .gitignore
+└── LICENSE
