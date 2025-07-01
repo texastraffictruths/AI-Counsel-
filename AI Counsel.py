@@ -1,9 +1,8 @@
 import streamlit as st
-import io
+import datetime
 import fitz  # PyMuPDF library, requires 'pip install PyMuPDF'
 
 # --- SESSION STATE INITIALIZATION ---
-# This must be at the top level of the script to initialize variables.
 def initialize_session_state():
     if 'page' not in st.session_state:
         st.session_state.page = 'home_dashboard'
@@ -13,28 +12,38 @@ def initialize_session_state():
         st.session_state.active_case_id = None
 
 # --- PAGE CONFIGURATION ---
-# This sets the browser tab's title and icon.
 st.set_page_config(
     page_title="AI Counsel",
-    page_icon="⚖️",
+    page_icon="âš–ï¸",
     layout="wide"
 )
 
 # --- HELPER FUNCTIONS (The App's Tools) ---
 
 def display_home_dashboard():
-    st.title("⚖️ My Cases")
+    st.title("âš–ï¸ My Cases")
     st.write("---")
-
     st.subheader("Start a New Case")
     new_case_title = st.text_input("Enter a title for your new case (e.g., 'Traffic Stop - Jan 5th')")
-    
-    if st.button("➕ Create New Case", type="primary"):
+
+    if st.button("âž• Create New Case", type="primary"):
         if new_case_title:
             case_id = f"AIC-{len(st.session_state.cases) + 1:03d}"
             st.session_state.cases[case_id] = {
-                "title": new_case_title, "case_id": case_id, "timeline": [],
-                "evidence": {}, "persons": []
+                "title": new_case_title,
+                "case_id": case_id,
+                "created_at": datetime.datetime.now().isoformat(),
+                "last_modified": datetime.datetime.now().isoformat(),
+
+                # Core Data Model for Each Case:
+                "facts": [],            # Timeline events / facts (list of dicts)
+                "evidence": {},         # Evidence files & metadata (dict of dicts)
+                "persons": [],          # People/entities (list of dicts)
+                "notes": [],            # User notes (list of dicts)
+                "tasks": [],            # Tasks/checklist items (list of dicts)
+                "sources": [],          # Laws, statutes, cases (list of dicts)
+                "incident_log": [],     # Post-filing incidents (list of dicts)
+                # Add more as you need!
             }
             st.success(f"Successfully created case '{new_case_title}' with ID {case_id}")
             st.experimental_rerun()
@@ -43,17 +52,13 @@ def display_home_dashboard():
 
     st.write("---")
     st.subheader("Existing Cases")
-
     if not st.session_state.cases:
         st.info("You have no cases yet. Create one above to get started.")
     else:
-        # Display headers for the case list
         col1, col2, col3 = st.columns([3, 2, 1])
         col1.markdown("**Case Title**")
         col2.markdown("**Case ID**")
         col3.markdown("**Action**")
-
-        # Loop through all cases and display them
         for case_id, case_data in st.session_state.cases.items():
             c1, c2, c3 = st.columns([3, 2, 1])
             c1.write(case_data['title'])
@@ -85,14 +90,23 @@ def display_case_workspace():
     with st.sidebar:
         st.title("AI Counsel")
         st.subheader("Toolbox")
-        options_list = ["📊 Dashboard", "⏳ Factual Timeline", "🗄️ Evidence Locker", "👥 Persons & Entities", "⚖️ Sources & Statutes", "✍️ Documents & Drafts", "📈 Incident Log", "📝 Case Notes"]
+        options_list = [
+            "ðŸ“Š Dashboard",
+            "â³ Factual Timeline",
+            "ðŸ—„ï¸ Evidence Locker",
+            "ðŸ‘¥ Persons & Entities",
+            "âš–ï¸ Sources & Statutes",
+            "âœï¸ Documents & Drafts",
+            "ðŸ“ˆ Incident Log",
+            "ðŸ“ Case Notes",
+        ]
         selected_tab = st.radio("Navigation", options=options_list, key="navigation_radio")
 
     # Main content area based on sidebar selection
-    if selected_tab == "📊 Dashboard":
+    if selected_tab == "ðŸ“Š Dashboard":
         display_dashboard_tab(active_case_data)
     else:
-        st.header(f"📍 You are in the {selected_tab} tab.")
+        st.header(f"ðŸ“ You are in the {selected_tab} tab.")
         st.info("This content has not been built yet.")
         st.subheader("Current Case Data (For Debugging)")
         st.json(active_case_data)
@@ -114,17 +128,17 @@ def display_dashboard_tab(case_data):
                         pdf_document = fitz.open(stream=uploaded_file.getvalue(), filetype="pdf")
                         extracted_text = "".join([page.get_text() for page in pdf_document])
                         pdf_document.close()
-
                         case_data["evidence"][uploaded_file.name] = {
                             "file_name": uploaded_file.name,
                             "file_type": uploaded_file.type,
                             "file_size": uploaded_file.size,
-                            "extracted_text": extracted_text
+                            "extracted_text": extracted_text,
+                            "uploaded_at": datetime.datetime.now().isoformat(),
                         }
-                        st.success(f"✅ Successfully processed {uploaded_file.name}")
+                        st.success(f"âœ… Successfully processed {uploaded_file.name}")
                     except Exception as e:
                         st.error(f"Error processing {uploaded_file.name}: {e}")
-        
+
         if case_data["evidence"]:
             st.write("---")
             st.subheader("Processed Evidence")
@@ -133,8 +147,6 @@ def display_dashboard_tab(case_data):
                     st.text_area("", value=file_data["extracted_text"], height=300, disabled=True, key=f"text_{file_name}")
 
 # --- MAIN APPLICATION LOGIC ---
-# This is the "traffic cop" that decides which page to show.
-
 def main():
     initialize_session_state()
     if st.session_state.page == 'home_dashboard':
@@ -142,10 +154,8 @@ def main():
     elif st.session_state.page == 'case_workspace':
         display_case_workspace()
     else:
-        # Default to home if state is corrupted
         st.session_state.page = 'home_dashboard'
         st.experimental_rerun()
 
 if __name__ == "__main__":
-    main()
-              
+    main()_
