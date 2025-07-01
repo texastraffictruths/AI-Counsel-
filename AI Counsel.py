@@ -1,6 +1,6 @@
 import streamlit as st
 import datetime
-import fitz  # PyMuPDF library, requires 'pip install PyMuPDF'
+import fitz  # PyMuPDF library
 
 # --- SESSION STATE INITIALIZATION ---
 def initialize_session_state():
@@ -33,15 +33,13 @@ def display_home_dashboard():
                 "case_id": case_id,
                 "created_at": datetime.datetime.now().isoformat(),
                 "last_modified": datetime.datetime.now().isoformat(),
-                # --- Robust data model for each case ---
-                "facts": [],            # Timeline events / facts (list of dicts)
-                "evidence": {},         # Evidence files & metadata (dict of dicts)
-                "persons": [],          # People/entities (list of dicts)
-                "notes": [],            # User notes (list of dicts)
-                "tasks": [],            # Tasks/checklist items (list of dicts)
-                "sources": [],          # Laws, statutes, cases (list of dicts)
-                "incident_log": [],     # Post-filing incidents (list of dicts)
-                # Add more as needed!
+                "facts": [],
+                "evidence": {},
+                "persons": [],
+                "notes": [],
+                "tasks": [],
+                "sources": [],
+                "incident_log": [],
             }
             st.success(f"Successfully created case '{new_case_title}' with ID {case_id}")
             st.experimental_rerun()
@@ -124,7 +122,7 @@ def display_case_workspace():
         st.subheader("Current Case Data (For Debugging)")
         st.json(active_case_data)
 
-# --- DASHBOARD TAB: File upload (working feature!) ---
+# --- DASHBOARD TAB: File upload ---
 def display_dashboard_tab(case_data):
     st.header("Module A: Case Genesis")
     st.info("Begin by uploading your case files (e.g., Police Reports). PDF format is supported.")
@@ -160,11 +158,52 @@ def display_dashboard_tab(case_data):
                 with st.expander(f"View Extracted Text from '{file_name}'"):
                     st.text_area("", value=file_data["extracted_text"], height=300, disabled=True, key=f"text_{file_name}")
 
-# --- PLACEHOLDER FUNCTIONS FOR ALL MODULES/TABS ---
-
+# --- FACT TIMELINE TAB: Manual fact entry and display ---
 def display_timeline_tab(case_data):
-    st.header("â³ Factual Timeline")
-    st.info("This is where your case's timeline and key facts will be displayed and managed. (Feature coming soon!)")
+    st.header("â³ Factual Timeline (Manual Fact Entry)")
+
+    st.info("Enter key facts or events for your case below. Future: This can be automated using open-source AI models.")
+
+    # Show existing timeline
+    if case_data["facts"]:
+        st.subheader("Current Timeline")
+        for i, fact in enumerate(case_data["facts"]):
+            with st.expander(f"{i+1}. {fact['event'][:60]}..."):
+                st.markdown(f"**Date:** {fact.get('date', 'N/A')}")
+                st.markdown(f"**People:** {', '.join(fact.get('people', [])) or 'N/A'}")
+                st.markdown(f"**Evidence:** {', '.join(fact.get('evidence', [])) or 'N/A'}")
+                st.markdown("> " + fact.get('source_text', ''))
+                if st.button("Delete", key=f"del_fact_{i}"):
+                    case_data["facts"].pop(i)
+                    st.experimental_rerun()
+    else:
+        st.info("No timeline facts added yet.")
+
+    st.write("---")
+    st.subheader("Add a New Fact/Event")
+    with st.form("manual_fact_entry"):
+        event = st.text_input("Event / Fact (short description)")
+        date = st.text_input("Date (YYYY-MM-DD or leave blank)", value="")
+        people = st.text_input("People/entities involved (comma separated)")
+        evidence = st.text_input("Evidence (file names, comma separated)")
+        source_text = st.text_area("Relevant excerpt / notes (optional)")
+        submit = st.form_submit_button("Add Fact")
+        if submit:
+            if event:
+                fact = {
+                    "event": event,
+                    "date": date if date else None,
+                    "people": [p.strip() for p in people.split(",")] if people else [],
+                    "evidence": [e.strip() for e in evidence.split(",")] if evidence else [],
+                    "source_text": source_text
+                }
+                case_data["facts"].append(fact)
+                st.success("Fact added!")
+                st.experimental_rerun()
+            else:
+                st.warning("Event/Fact description is required.")
+
+# --- PLACEHOLDER FUNCTIONS FOR ALL OTHER TABS ---
 
 def display_evidence_tab(case_data):
     st.header("ðŸ—„ï¸ Evidence Locker")
