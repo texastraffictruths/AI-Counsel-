@@ -18,8 +18,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- HELPER FUNCTIONS (The App's Tools) ---
-
+# --- HOME DASHBOARD: Case creation and listing ---
 def display_home_dashboard():
     st.title("âš–ï¸ My Cases")
     st.write("---")
@@ -34,8 +33,7 @@ def display_home_dashboard():
                 "case_id": case_id,
                 "created_at": datetime.datetime.now().isoformat(),
                 "last_modified": datetime.datetime.now().isoformat(),
-
-                # Core Data Model for Each Case:
+                # --- Robust data model for each case ---
                 "facts": [],            # Timeline events / facts (list of dicts)
                 "evidence": {},         # Evidence files & metadata (dict of dicts)
                 "persons": [],          # People/entities (list of dicts)
@@ -43,7 +41,7 @@ def display_home_dashboard():
                 "tasks": [],            # Tasks/checklist items (list of dicts)
                 "sources": [],          # Laws, statutes, cases (list of dicts)
                 "incident_log": [],     # Post-filing incidents (list of dicts)
-                # Add more as you need!
+                # Add more as needed!
             }
             st.success(f"Successfully created case '{new_case_title}' with ID {case_id}")
             st.experimental_rerun()
@@ -68,6 +66,7 @@ def display_home_dashboard():
                 st.session_state.page = 'case_workspace'
                 st.experimental_rerun()
 
+# --- CASE WORKSPACE: Main navigation and tab logic ---
 def display_case_workspace():
     if not st.session_state.active_case_id:
         st.session_state.page = 'home_dashboard'
@@ -86,7 +85,7 @@ def display_case_workspace():
         st.experimental_rerun()
     st.write("---")
 
-    # Sidebar for navigation within the case
+    # Sidebar navigation for the case modules
     with st.sidebar:
         st.title("AI Counsel")
         st.subheader("Toolbox")
@@ -102,15 +101,30 @@ def display_case_workspace():
         ]
         selected_tab = st.radio("Navigation", options=options_list, key="navigation_radio")
 
-    # Main content area based on sidebar selection
+    # Main content area based on selected tab
     if selected_tab == "ðŸ“Š Dashboard":
         display_dashboard_tab(active_case_data)
+    elif selected_tab == "â³ Factual Timeline":
+        display_timeline_tab(active_case_data)
+    elif selected_tab == "ðŸ—„ï¸ Evidence Locker":
+        display_evidence_tab(active_case_data)
+    elif selected_tab == "ðŸ‘¥ Persons & Entities":
+        display_persons_tab(active_case_data)
+    elif selected_tab == "âš–ï¸ Sources & Statutes":
+        display_sources_tab(active_case_data)
+    elif selected_tab == "âœï¸ Documents & Drafts":
+        display_documents_tab(active_case_data)
+    elif selected_tab == "ðŸ“ˆ Incident Log":
+        display_incident_log_tab(active_case_data)
+    elif selected_tab == "ðŸ“ Case Notes":
+        display_case_notes_tab(active_case_data)
     else:
         st.header(f"ðŸ“ You are in the {selected_tab} tab.")
         st.info("This content has not been built yet.")
         st.subheader("Current Case Data (For Debugging)")
         st.json(active_case_data)
 
+# --- DASHBOARD TAB: File upload (working feature!) ---
 def display_dashboard_tab(case_data):
     st.header("Module A: Case Genesis")
     st.info("Begin by uploading your case files (e.g., Police Reports). PDF format is supported.")
@@ -146,7 +160,37 @@ def display_dashboard_tab(case_data):
                 with st.expander(f"View Extracted Text from '{file_name}'"):
                     st.text_area("", value=file_data["extracted_text"], height=300, disabled=True, key=f"text_{file_name}")
 
-# --- MAIN APPLICATION LOGIC ---
+# --- PLACEHOLDER FUNCTIONS FOR ALL MODULES/TABS ---
+
+def display_timeline_tab(case_data):
+    st.header("â³ Factual Timeline")
+    st.info("This is where your case's timeline and key facts will be displayed and managed. (Feature coming soon!)")
+
+def display_evidence_tab(case_data):
+    st.header("ðŸ—„ï¸ Evidence Locker")
+    st.info("View, manage, and link evidence files here. (Feature coming soon!)")
+
+def display_persons_tab(case_data):
+    st.header("ðŸ‘¥ Persons & Entities")
+    st.info("All people and organizations involved in your case will be listed here. (Feature coming soon!)")
+
+def display_sources_tab(case_data):
+    st.header("âš–ï¸ Sources & Statutes")
+    st.info("Your case's library of statutes, laws, and court cases will appear here. (Feature coming soon!)")
+
+def display_documents_tab(case_data):
+    st.header("âœï¸ Documents & Drafts")
+    st.info("Draft, review, and export court documents here. (Feature coming soon!)")
+
+def display_incident_log_tab(case_data):
+    st.header("ðŸ“ˆ Incident Log")
+    st.info("Keep a log of important post-filing incidents and deadlines here. (Feature coming soon!)")
+
+def display_case_notes_tab(case_data):
+    st.header("ðŸ“ Case Notes")
+    st.info("Your private notepad for thoughts, theories, and findings. (Feature coming soon!)")
+
+# --- MAIN APP LOGIC ---
 def main():
     initialize_session_state()
     if st.session_state.page == 'home_dashboard':
@@ -158,4 +202,4 @@ def main():
         st.experimental_rerun()
 
 if __name__ == "__main__":
-    main()_
+    main()
